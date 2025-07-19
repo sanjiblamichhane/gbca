@@ -122,3 +122,53 @@ We add a suite of new, more operationally-focused tools.
     *   **Agent (on a weekly trigger 🗓️):** "It's the start of the new month! Time to update your KPIs. What was your revenue and churn for last month?"
     *   User provides the data. The agent uses `updateRevenueDashboard` and then `analyzeKPIs`.
     *   **Agent:** "Thanks! I've updated the dashboard. It looks like your cold email experiment brought in 5 new customers, giving it a CAC of $50 per customer. This is a very promising channel! Let's discuss how we can double down on this. 💪"
+  
+## Solution Architecture
+
+We will follow the Hub and Spoke Model in designing and building our workflows.
+Instead of building one giant "God" workflow, we will build a central **"Router" workflow** that acts as the brain, and then several smaller, specialized **"Skill" workflows** that the router can call upon.
+
+> This is a "Hub and Spoke" model, and it's the key to building a sophisticated agent like GBCA without creating a workflow that's impossible to debug or update.
+
+#### 1. The Hub: The Core Conversational Agent (Stateful Progression 📈)
+This is our main workflow. Its primary job is **not to do the work**, but to **delegate the work**.
+
+*   **Trigger:** Webhook (receives user message).
+*   **Core Logic:**
+    1.  `getBusinessState` (reads the Google Sheet).
+    2.  Uses an LLM to understand the user's intent and the business context.
+    3.  **Decides which "Skill" is needed.**
+    4.  Uses the **`Execute Workflow`** node to call the appropriate "Skill" workflow, passing along the necessary data (like the user's state).
+    5.  Receives the result back from the Skill workflow.
+    6.  Responds to the user.
+
+Our `Stateful Progression` feature isn't a separate workflow; it is the *inherent function* of this Hub workflow.
+
+#### 2. The Spokes: The Specialized "Skill" Workflows
+These are smaller, single-purpose workflows. Each one is an expert at one specific task. They are triggered *by the Hub workflow*.
+
+*   **Trigger:** **Webhook** (or set to "Trigger by `Execute Workflow` node").
+*   **Core Logic:** Each workflow receives data from the Hub, performs its specific function, and then **returns a final JSON object** with the result (e.g., the text to send to the user).
+
+### How to Map Our Features to This Model
+
+Let's break down our feature list into this architecture.
+
+| Feature | Workflow Type | How it Works |
+| :--- | :--- | :--- |
+| **Guided Onboarding 🗺️** | **Standalone Workflow** | This is a one-time setup process. It has its own trigger (e.g., a user signing up) and runs once per user to create their Google Sheet. It doesn't need to be called by the main Hub. |
+| **Hypothesis Management 🧪** | **Skill Workflow (Spoke)** | The Hub determines the user wants to manage hypotheses and calls this workflow. This workflow contains the LLM prompts and logic specific to identifying and prioritizing assumptions. |
+| **Experiment Design 🔬** | **Skill Workflow (Spoke)** | When the user wants help creating an MVP or interview script, the Hub calls this workflow. It might contain nodes to query your VectorDB for "Mom Test" principles. |
+| **Learning Synthesis 🧠** | **Skill Workflow (Spoke)** | The Hub triggers this when the user provides new data. This workflow's sole job is to read the interview/experiment tabs and use an LLM to generate insights. |
+| **Growth Engine Design 🌱** | **Skill Workflow (Spoke)** | Called by the Hub when the user is ready for growth. This workflow specializes in querying the "Traction" framework from your VectorDB and suggesting experiments. |
+| **Revenue & Sales Support 💰** | **Skill Workflow (Spoke)** | A dedicated workflow for drafting sales emails, suggesting pricing strategies (querying sales knowledge from your DB), etc. |
+| **Product Management Assistant 📋**| **Skill Workflow (Spoke)** | A complex but focused workflow that handles the RICE scoring logic, feedback categorization, and updates the `Product Roadmap` tab. |
+| **KPI Dashboard & Analysis 📊** | **Reusable Skill Workflow (Spoke)** | This is a special case and a huge benefit of this model. You build **one** workflow for `KPI Analysis`. It can then be called by **two different triggers**: <br> 1. The Hub (when a user asks "How are my KPIs?").<br> 2. A separate **Scheduled Workflow** that runs weekly to proactively send the user their summary. |
+
+### Why This Modular Approach is Better?
+
+1.  **Maintainability:** If your `Growth Engine Design` logic is flawed, you only need to open and fix that one specific workflow. You won't risk breaking the `Product Management` part.
+2.  **Clarity & Readability:** A workflow with 5 nodes is infinitely easier to understand than one with 50. Your Hub workflow remains clean, acting as a simple switchboard.
+3.  **Scalability:** When you invent a new feature, you just build a new "Skill" workflow and update the Hub's router prompt to know about it. You don't have to touch any of the other skills.
+4.  **Reusability:** As shown with the `KPI Analysis` workflow, you can build a core piece of logic once and call it from multiple places for different purposes (interactive chat vs. scheduled report).
+5.  **Testing:** You can test each Skill workflow in complete isolation by sending it mock data, making debugging much faster and more reliable.
