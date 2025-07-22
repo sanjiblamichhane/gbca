@@ -14,7 +14,7 @@
 
 #### **2. Core Functionalities ✨**
 
-1.  **Guided Onboarding 🗺️:** Structures a user's initial idea into a testable framework (like a Business Model Canvas).
+1.  **Guided Onboarding 🗺️:** Structures a user's initial idea into a testable framework (like a Business Model Canvas).🔴▶️ [Watch YouTube Tutorial](https://youtu.be/G4kevPtNSXk)
 2.  **Hypothesis Management 🧪:** Helps the user identify and prioritize their riskiest assumptions (value hypothesis, growth hypothesis).
 3.  **Experiment Design 🔬:** Assists in creating MVPs (Minimum Viable Products) and customer discovery experiments to test hypotheses.
 4.  **Learning Synthesis 🧠:** Takes user-provided data (interview notes, survey results) and helps synthesize it into "validated learnings."
