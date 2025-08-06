@@ -6,7 +6,7 @@ from constants import logger
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Startup KPI Dashboard API",
+    title="[GBCA] Startup KPI Dashboard API",
     description="API for fetching startup business metrics and KPI data",
     version="1.0.0"
 )
