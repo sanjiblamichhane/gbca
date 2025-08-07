@@ -1,0 +1,180 @@
+{
+  "name": "fastpi+reporting",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1616,
+        -304
+      ],
+      "id": "33bc0c2f-fe41-4ab5-a132-304a485f0cfb",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8000/kpi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1392,
+        -400
+      ],
+      "id": "67e262c6-698a-4074-a92d-cd2adece9652",
+      "name": "Get Data From API"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the metrics object from the incoming data\nconst metrics = $json.metrics;\n\n// Prepare an array to hold our summarized results\nconst summary = [];\n\n// Define which metrics are \"good\" when they go up\nconst goodWhenUp = ['monthly_recurring_revenue', 'active_users', 'lifetime_value'];\n\n// Loop over each metric in the object (e.g., 'monthly_recurring_revenue', 'active_users', etc.)\nfor (const key in metrics) {\n  const metric = metrics[key];\n  const data = metric.data;\n\n  // Make sure there's enough data to compare\n  if (data.length < 2) {\n    continue; // Skip this metric if there's no history\n  }\n\n  // Get the latest and previous data points\n  const latest = data[data.length - 1];\n  const previous = data[data.length - 2];\n\n  // Calculate the percentage change\n  let change = 0;\n  if (previous.value !== 0) {\n    change = ((latest.value - previous.value) / previous.value) * 100;\n  }\n\n  // Determine the direction of change (up, down, or flat)\n  let direction = 'flat';\n  if (change > 0) direction = 'up';\n  if (change < 0) direction = 'down';\n\n  // Determine if the change is positive (good) or negative (bad) for the business\n  let sentiment = 'neutral';\n  if (direction === 'up') {\n    sentiment = goodWhenUp.includes(key) ? 'good' : 'bad';\n  } else if (direction === 'down') {\n    sentiment = goodWhenUp.includes(key) ? 'bad' : 'good';\n  }\n\n  // Format the values for display\n  const unit = metric.unit;\n  const formattedValue = unit === 'USD' ? `$${latest.value.toLocaleString()}` : `${latest.value.toLocaleString()}${unit === '%' ? '%' : ''}`;\n  const formattedChange = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;\n\n  // Add the summarized object to our results array\n  summary.push({\n    name: key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),\n    description: metric.description,\n    currentValue: formattedValue,\n    change: formattedChange,\n    direction: direction,\n    sentiment: sentiment, // This will be used for color-coding\n  });\n}\n\n// Return the summary array for the next node to use\nreturn { summary };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1168,
+        -400
+      ],
+      "id": "072a26de-6c8e-4454-bb2e-dfdced8ab2ec",
+      "name": "Process and Analyze Data"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Get the summary array from the previous node's output.\nconst summary = $json.summary;\n\nconst companyInfo = $('Get Data From API').item.json.company_info;\n\n\n// --- HTML GENERATION (No changes needed below this line) ---\n\n// Define colors for our email\nconst colors = {\n  good: '#28a745', // green\n  bad: '#dc3545',  // red\n  neutral: '#6c757d' // grey\n};\n\n// Start building the HTML string\nlet html = `\n<div style=\"font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px;\">\n  <h1 style=\"color: #00529B;\">Weekly KPI Digest for ${companyInfo.name}</h1>\n  <p style=\"color: #666; border-bottom: 1px solid #eee; padding-bottom: 15px;\">\n    Here is your automated performance summary for the most recent period.\n  </p>\n`;\n\n// Loop through each summarized metric and create a section for it\nfor (const metric of summary) {\n  const color = colors[metric.sentiment];\n  html += `\n  <div style=\"margin-bottom: 20px;\">\n    <h2 style=\"font-size: 18px; margin-bottom: 5px; text-transform: capitalize;\">${metric.name}</h2>\n    <p style=\"font-size: 12px; color: #777; margin-top: 0; font-style: italic;\">${metric.description}</p>\n    <p style=\"font-size: 24px; font-weight: bold; margin: 0;\">\n      ${metric.currentValue}\n      <span style=\"font-size: 16px; font-weight: normal; color: ${color}; margin-left: 10px;\">\n        (${metric.change})\n      </span>\n    </p>\n  </div>\n  `;\n}\n\n// Return the final HTML string in a new field called 'emailBodyHtml'\nreturn { emailBodyHtml: html };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -400
+      ],
+      "id": "19a206f7-4779-43a4-a534-2517cf808dc4",
+      "name": "Create Email Template"
+    },
+    {
+      "parameters": {
+        "sendTo": "givingback.np+testsendnow@gmail.com",
+        "subject": "[Test] GivingbackAI CoFounder Agent ",
+        "message": "={{ $json.emailBodyHtml }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -720,
+        -400
+      ],
+      "id": "88e7a5eb-dfd8-4ef5-88ff-2151fcafdb68",
+      "name": "Send a message",
+      "webhookId": "cad57f02-6b12-40da-aa67-c6cda3659df6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "htuqj4IYVgk9lxxJ",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1616,
+        -496
+      ],
+      "id": "5df051d6-b993-4eae-8a98-d976e5f0b240",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get Data From API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Data From API": {
+      "main": [
+        [
+          {
+            "node": "Process and Analyze Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process and Analyze Data": {
+      "main": [
+        [
+          {
+            "node": "Create Email Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Email Template": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Data From API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0f110641-bf2d-4c46-b3fc-e77038556ae3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c8fc2ba085c0ee8efa701947af3ecea24e390aa60d44f5fb616c7af60c0212af"
+  },
+  "id": "b7WoPVykN67h2TUC",
+  "tags": []
+}
