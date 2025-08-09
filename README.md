@@ -15,7 +15,7 @@
 #### **2. Core Functionalities ✨**
 
 1.  **Guided Onboarding 🗺️:** Structures a user's initial idea into a testable framework (like a Business Model Canvas).🔴▶️ [Watch YouTube Tutorial](https://youtu.be/G4kevPtNSXk)
-2.  **Hypothesis Management 🧪:** Helps the user identify and prioritize their riskiest assumptions (value hypothesis, growth hypothesis).
+2.  **Hypothesis Management 🧪:** Helps the user identify and prioritize their riskiest assumptions (value hypothesis, growth hypothesis). 🔴▶️ [Watch YouTube Tutorial](https://youtu.be/G4kevPtNSXk)
 3.  **Experiment Design 🔬:** Assists in creating MVPs (Minimum Viable Products) and customer discovery experiments to test hypotheses.
 4.  **Learning Synthesis 🧠:** Takes user-provided data (interview notes, survey results) and helps synthesize it into "validated learnings."
 5.  **Stateful Progression 📈:** Remembers where the founder is in the journey and suggests the next logical action.
@@ -23,7 +23,6 @@
 7.  **Revenue & Sales Support 💰:** Assists with pricing strategies, drafting sales emails, and managing a lightweight sales pipeline.
 8.  **Product Management Assistant 📋:** Helps categorize user feedback, prioritize feature development using frameworks like RICE, and draft product specs.
 9.  **KPI Dashboard & Analysis 📊:** Tracks key metrics (MRR, Churn, LTV, CAC) and provides weekly summaries and alerts on significant changes. 🔴▶️ [Watch YouTube Tutorial](https://youtu.be/jQhZu12xBQg?si=NIDuLO5yyctBGMK2)
-
 ---
 
 #### **3. System Architecture: Brain, Memory, and Tools 🏗️**
