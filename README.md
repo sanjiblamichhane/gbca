@@ -21,7 +21,7 @@
 5.  **Stateful Progression 📈:** Remembers where the founder is in the journey and suggests the next logical action.
 6.  **Growth Engine Design 🌱:** Helps founders brainstorm, prioritize, and execute growth experiments based on the "Traction" framework.
 7.  **Revenue & Sales Support 💰:** Assists with pricing strategies, drafting sales emails, and managing a lightweight sales pipeline.
-8.  **Product Management Assistant 📋:** Helps categorize user feedback, prioritize feature development using frameworks like RICE, and draft product specs.
+8.  **Product Management Assistant 📋:** Helps categorize user feedback, prioritize feature development using frameworks like RICE, and draft product specs. 🔴▶️ [Watch YouTube Tutorial](https://youtu.be/fKLNVV7vOTk)
 9.  **KPI Dashboard & Analysis 📊:** Tracks key metrics (MRR, Churn, LTV, CAC) and provides weekly summaries and alerts on significant changes. 🔴▶️ [Watch YouTube Tutorial](https://youtu.be/jQhZu12xBQg?si=NIDuLO5yyctBGMK2)
 ---
 
